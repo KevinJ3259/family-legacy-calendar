@@ -1,0 +1,390 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #f7f4ee;
+  color: #27231f;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.app {
+  min-height: 100vh;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 30px;
+  padding: 55px 8%;
+  background: #ffffff;
+  border-bottom: 1px solid #e7e0d6;
+}
+
+.eyebrow,
+.month-label {
+  margin: 0 0 10px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #8b6844;
+}
+
+.header h1 {
+  margin: 0;
+  font-family: Georgia, serif;
+  font-size: 44px;
+}
+
+.subtitle {
+  max-width: 650px;
+  margin: 14px 0 0;
+  color: #6d655d;
+  line-height: 1.6;
+}
+
+.add-button {
+  border: none;
+  border-radius: 8px;
+  padding: 14px 20px;
+  background: #493b2f;
+  color: white;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+main {
+  width: min(1100px, 88%);
+  margin: 40px auto;
+}
+
+.welcome-card {
+  padding: 35px;
+  background: #e9dfcf;
+  border-radius: 16px;
+}
+
+.welcome-card h2 {
+  margin: 5px 0 10px;
+  font-family: Georgia, serif;
+  font-size: 32px;
+}
+
+.welcome-card p:last-child {
+  color: #655c53;
+}
+
+.birthday-section {
+  margin-top: 40px;
+}
+
+.birthday-section > h2 {
+  font-family: Georgia, serif;
+  font-size: 27px;
+}
+
+.birthday-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 18px;
+}
+
+.birthday-card {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 22px;
+  background: white;
+  border: 1px solid #e8e1d8;
+  border-radius: 14px;
+}
+
+.date-badge {
+  width: 68px;
+  padding: 9px;
+  text-align: center;
+  background: #f0e6d7;
+  border-radius: 10px;
+}
+
+.date-badge span {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: #8b6844;
+}
+
+.date-badge strong {
+  display: block;
+  margin-top: 2px;
+  font-family: Georgia, serif;
+  font-size: 27px;
+}
+
+.birthday-card h3 {
+  margin: 0 0 5px;
+  font-size: 19px;
+}
+
+.birthday-card p {
+  margin: 0 0 7px;
+  color: #777069;
+}
+
+@media (max-width: 700px) {
+  .header {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 35px 6%;
+  }
+
+  .header h1 {
+    font-size: 35px;
+  }
+
+  main {
+    width: 92%;
+  }
+}
+
+/* Add Family Member Form */
+
+.member-form-card {
+  max-width: 860px;
+  margin: 32px auto;
+  padding: 28px 32px;
+  background: #ffffff;
+  border: 1px solid #e6ddd2;
+  border-radius: 14px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+}
+
+.member-form-card h2 {
+  margin: 0 0 24px;
+  text-align: center;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 28px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+}
+
+.form-grid input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border: 1px solid #d8cbbd;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 15px;
+  outline: none;
+}
+
+.form-grid input:focus {
+  border-color: #76563d;
+  box-shadow: 0 0 0 3px rgba(118, 86, 61, 0.1);
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.form-actions button {
+  padding: 11px 20px;
+  border: 1px solid #4c3829;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.form-actions button[type="button"] {
+  background: white;
+  color: #4c3829;
+}
+
+.form-actions button[type="submit"] {
+  background: #4c3829;
+  color: white;
+}
+
+.form-actions button:hover {
+  opacity: 0.88;
+}
+
+@media (max-width: 700px) {
+  .member-form-card {
+    margin: 20px;
+    padding: 22px;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Responsive Layout */
+
+@media (max-width: 900px) {
+  .header {
+    padding: 40px 6%;
+  }
+
+  .header h1 {
+    font-size: 38px;
+  }
+
+  main {
+    width: 92%;
+  }
+
+  .birthday-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .member-form-card {
+    max-width: 92%;
+  }
+}
+
+@media (max-width: 700px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 22px;
+    padding: 30px 5%;
+  }
+
+  .header h1 {
+    font-size: 32px;
+  }
+
+  .subtitle {
+    font-size: 15px;
+  }
+
+  .add-button {
+    width: 100%;
+  }
+
+  main {
+    width: 94%;
+    margin: 25px auto;
+  }
+
+  .welcome-card {
+    padding: 24px 18px;
+    text-align: center;
+  }
+
+  .welcome-card h2 {
+    font-size: 26px;
+  }
+
+  .birthday-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .birthday-card {
+    width: 100%;
+  }
+
+  .member-form-card {
+    width: 94%;
+    margin: 22px auto;
+    padding: 22px 18px;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .form-actions button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .header h1 {
+    font-size: 28px;
+  }
+
+  .eyebrow {
+    font-size: 10px;
+    letter-spacing: 1.5px;
+  }
+
+  .welcome-card h2 {
+    font-size: 23px;
+  }
+
+  .birthday-section > h2 {
+    font-size: 24px;
+  }
+
+  .birthday-card {
+    padding: 18px;
+    gap: 14px;
+  }
+
+  .date-badge {
+    width: 60px;
+  }
+
+  .date-badge strong {
+    font-size: 24px;
+  }
+
+  .member-form-card h2 {
+    font-size: 25px;
+  }
+}
+
+.birthday-info {
+  flex: 1;
+}
+
+.card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.card-actions button {
+  padding: 7px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.edit-button {
+  border: 1px solid #76563d;
+  background: white;
+  color: #76563d;
+}
+
+.delete-button {
+  border: 1px solid #8a3f3f;
+  background: white;
+  color: #8a3f3f;
+}
+
+@media (max-width: 480px) {
+  .card-actions {
+    flex-wrap: wrap;
+  }
+}
