@@ -31,11 +31,26 @@ type FamilyMember = {
 const API_URL = 'http://127.0.0.1:8000'
 const CALENDAR_YEAR = 2026
 
+const MONTHS = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+]
+
 function App() {
   const [birthdays, setBirthdays] = useState<Birthday[]>([])
   const [showForm, setShowForm] = useState(false)
-
   const [editingMemberId, setEditingMemberId] = useState<number | null>(null)
+  const [selectedMonth, setSelectedMonth] = useState(0)
 
   const [firstName, setFirstName] = useState('')
   const [middleName, setMiddleName] = useState('')
@@ -83,11 +98,6 @@ function App() {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
-    if (!firstName || !lastName || !dateOfBirth) {
-      alert('Please enter first name, last name, and date of birth.')
-      return
-    }
-
     const memberData = {
       first_name: firstName,
       middle_name: middleName || null,
@@ -99,14 +109,12 @@ function App() {
     }
 
     try {
-      const isEditing = editingMemberId !== null
-
       const response = await fetch(
-        isEditing
+        editingMemberId !== null
           ? `${API_URL}/family-members/${editingMemberId}`
           : `${API_URL}/family-members`,
         {
-          method: isEditing ? 'PUT' : 'POST',
+          method: editingMemberId !== null ? 'PUT' : 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
@@ -115,11 +123,7 @@ function App() {
       )
 
       if (!response.ok) {
-        throw new Error(
-          isEditing
-            ? 'Unable to update family member.'
-            : 'Unable to add family member.'
-        )
+        throw new Error('Unable to save family member.')
       }
 
       resetForm()
@@ -134,13 +138,7 @@ function App() {
   const handleEdit = async (id: number) => {
     try {
       const response = await fetch(`${API_URL}/family-members`)
-
-      if (!response.ok) {
-        throw new Error('Unable to load family members.')
-      }
-
       const members: FamilyMember[] = await response.json()
-
       const member = members.find((item) => item.id === id)
 
       if (!member) {
@@ -155,16 +153,11 @@ function App() {
       setDateOfBirth(member.date_of_birth)
       setRelationship(member.relationship || '')
       setNotes(member.notes || '')
-
       setShowForm(true)
 
-      window.scrollTo({
-        top: 0,
-        behavior: 'smooth',
-      })
+      window.scrollTo({ top: 0, behavior: 'smooth' })
     } catch (error) {
       console.error('Error loading family member:', error)
-      alert('Unable to load family member for editing.')
     }
   }
 
@@ -173,51 +166,83 @@ function App() {
       `Are you sure you want to delete ${name}?`
     )
 
-    if (!confirmed) {
-      return
-    }
+    if (!confirmed) return
 
     try {
-      const response = await fetch(
-        `${API_URL}/family-members/${id}`,
-        {
-          method: 'DELETE',
-        }
-      )
-
-      if (!response.ok) {
-        throw new Error('Unable to delete family member.')
-      }
+      await fetch(`${API_URL}/family-members/${id}`, {
+        method: 'DELETE',
+      })
 
       await loadBirthdays()
     } catch (error) {
       console.error('Error deleting family member:', error)
-      alert('Unable to delete family member.')
     }
   }
 
-  const getMonthAbbreviation = (month: number) => {
-    const months = [
-      'JAN',
-      'FEB',
-      'MAR',
-      'APR',
-      'MAY',
-      'JUN',
-      'JUL',
-      'AUG',
-      'SEP',
-      'OCT',
-      'NOV',
-      'DEC',
-    ]
+  const getDaysInMonth = () => {
+    return new Date(
+      CALENDAR_YEAR,
+      selectedMonth + 1,
+      0
+    ).getDate()
+  }
 
-    return months[month - 1]
+  const getFirstDayOfMonth = () => {
+    return new Date(
+      CALENDAR_YEAR,
+      selectedMonth,
+      1
+    ).getDay()
+  }
+
+  const getBirthdaysForDay = (day: number) => {
+    return birthdays.filter(
+      (person) =>
+        person.month === selectedMonth + 1 &&
+        person.day === day
+    )
+  }
+
+  const renderCalendarDays = () => {
+    const days = []
+    const firstDay = getFirstDayOfMonth()
+    const daysInMonth = getDaysInMonth()
+
+    for (let i = 0; i < firstDay; i++) {
+      days.push(
+        <div
+          key={`empty-${i}`}
+          className="calendar-day empty-day"
+        />
+      )
+    }
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dayBirthdays = getBirthdaysForDay(day)
+
+      days.push(
+        <div key={day} className="calendar-day">
+          <div className="calendar-day-number">{day}</div>
+
+          {dayBirthdays.map((person) => (
+            <div
+              key={person.id}
+              className="calendar-birthday"
+            >
+              <strong>{person.name}</strong>
+              <span>Turning {person.turning_age}</span>
+            </div>
+          ))}
+        </div>
+      )
+    }
+
+    return days
   }
 
   return (
     <div className="app">
-      <header className="header">
+      <header className="header no-print">
         <div>
           <p className="eyebrow">
             CELEBRATE • REMEMBER • CONNECT
@@ -242,7 +267,7 @@ function App() {
 
       <main>
         {showForm && (
-          <section className="member-form-card">
+          <section className="member-form-card no-print">
             <h2>
               {editingMemberId !== null
                 ? 'Edit Family Member'
@@ -255,9 +280,7 @@ function App() {
                   type="text"
                   placeholder="First name"
                   value={firstName}
-                  onChange={(event) =>
-                    setFirstName(event.target.value)
-                  }
+                  onChange={(e) => setFirstName(e.target.value)}
                   required
                 />
 
@@ -265,27 +288,21 @@ function App() {
                   type="text"
                   placeholder="Middle name"
                   value={middleName}
-                  onChange={(event) =>
-                    setMiddleName(event.target.value)
-                  }
+                  onChange={(e) => setMiddleName(e.target.value)}
                 />
 
                 <input
                   type="text"
                   placeholder="Last name"
                   value={lastName}
-                  onChange={(event) =>
-                    setLastName(event.target.value)
-                  }
+                  onChange={(e) => setLastName(e.target.value)}
                   required
                 />
 
                 <input
                   type="date"
                   value={dateOfBirth}
-                  onChange={(event) =>
-                    setDateOfBirth(event.target.value)
-                  }
+                  onChange={(e) => setDateOfBirth(e.target.value)}
                   required
                 />
 
@@ -293,18 +310,14 @@ function App() {
                   type="text"
                   placeholder="Relationship"
                   value={relationship}
-                  onChange={(event) =>
-                    setRelationship(event.target.value)
-                  }
+                  onChange={(e) => setRelationship(e.target.value)}
                 />
 
                 <input
                   type="text"
                   placeholder="Notes"
                   value={notes}
-                  onChange={(event) =>
-                    setNotes(event.target.value)
-                  }
+                  onChange={(e) => setNotes(e.target.value)}
                 />
               </div>
 
@@ -329,22 +342,60 @@ function App() {
           </section>
         )}
 
-        <section className="welcome-card">
+        <section className="calendar-toolbar no-print">
           <div>
-            <p className="month-label">
-              YOUR FAMILY CALENDAR
-            </p>
+            <label htmlFor="month-select">
+              Select Month
+            </label>
 
-            <h2>{CALENDAR_YEAR} Family Birthdays</h2>
+            <select
+              id="month-select"
+              value={selectedMonth}
+              onChange={(e) =>
+                setSelectedMonth(Number(e.target.value))
+              }
+            >
+              {MONTHS.map((month, index) => (
+                <option key={month} value={index}>
+                  {month}
+                </option>
+              ))}
+            </select>
+          </div>
 
-            <p>
-              Birthdays and ages are calculated automatically from
-              each family member's date of birth.
-            </p>
+          <button
+            type="button"
+            className="print-button"
+            onClick={() => window.print()}
+          >
+            Print Calendar
+          </button>
+        </section>
+
+        <section className="print-calendar">
+          <div className="print-calendar-header">
+            <p>Family Legacy Calendar</p>
+            <h2>
+              {MONTHS[selectedMonth]} {CALENDAR_YEAR}
+            </h2>
+          </div>
+
+          <div className="calendar-weekdays">
+            <div>Sun</div>
+            <div>Mon</div>
+            <div>Tue</div>
+            <div>Wed</div>
+            <div>Thu</div>
+            <div>Fri</div>
+            <div>Sat</div>
+          </div>
+
+          <div className="calendar-grid">
+            {renderCalendarDays()}
           </div>
         </section>
 
-        <section className="birthday-section">
+        <section className="birthday-section no-print">
           <h2>Upcoming Birthdays</h2>
 
           <div className="birthday-grid">
@@ -355,7 +406,9 @@ function App() {
               >
                 <div className="date-badge">
                   <span>
-                    {getMonthAbbreviation(person.month)}
+                    {MONTHS[person.month - 1]
+                      .slice(0, 3)
+                      .toUpperCase()}
                   </span>
 
                   <strong>{person.day}</strong>
@@ -363,9 +416,7 @@ function App() {
 
                 <div className="birthday-info">
                   <h3>{person.name}</h3>
-
                   <p>{person.birthday}</p>
-
                   <strong>
                     Turning {person.turning_age}
                   </strong>
@@ -374,7 +425,9 @@ function App() {
                     <button
                       type="button"
                       className="edit-button"
-                      onClick={() => handleEdit(person.id)}
+                      onClick={() =>
+                        handleEdit(person.id)
+                      }
                     >
                       Edit
                     </button>
@@ -383,7 +436,10 @@ function App() {
                       type="button"
                       className="delete-button"
                       onClick={() =>
-                        handleDelete(person.id, person.name)
+                        handleDelete(
+                          person.id,
+                          person.name
+                        )
                       }
                     >
                       Delete
