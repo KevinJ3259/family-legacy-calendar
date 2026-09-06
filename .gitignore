@@ -22,3 +22,9 @@ frontend/dist/
 # OS files
 .DS_Store
 Thumbs.db
+
+backend/uploads/
+backend/family_legacy.db
+backend/venv/
+__pycache__/
+*.pyc
