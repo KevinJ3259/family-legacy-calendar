@@ -4,9 +4,21 @@ Family Legacy Calendar is a full-stack web application designed to help families
 
 The application combines a traditional family calendar with digital family-history features, allowing each authenticated family to maintain its own private collection of members, events, birthdays, and monthly photo memories.
 
+## Live Application
+
+**Live Demo:**  
+https://family-legacy-calendar-frontend.onrender.com
+
+**Backend API:**  
+https://family-legacy-calendar.onrender.com
+
+**GitHub Repository:**  
+https://github.com/KevinJ3259/family-legacy-calendar
+
 ## Features
 
 - Secure user registration and login
+- JWT-based authentication
 - Separate family data for each authenticated user
 - Add, edit, and delete family members
 - Automatically display family birthdays on the calendar
@@ -21,9 +33,11 @@ The application combines a traditional family calendar with digital family-histo
 - Automatic photo collage layouts
 - Support for pre-made photo collages
 - Manage and delete individual monthly photos
+- Persistent photo storage in production
 - Responsive calendar interface
 - Print-friendly family calendar
 - User-specific photo and calendar data
+- Production PostgreSQL database
 
 ## Automatic Photo Layouts
 
@@ -58,21 +72,28 @@ This allows each calendar month to function as both a traditional calendar and a
 
 ### Database
 
-- SQLite for local development
+- PostgreSQL — production
+- SQLite — local development
+
+### Deployment
+
+- Render Web Service — FastAPI backend
+- Render Static Site — React frontend
+- Render PostgreSQL — production database
+- Render Persistent Disk — uploaded family photographs
 
 ## Application Architecture
-
-The project uses a full-stack architecture:
 
 ```text
 React + TypeScript Frontend
           |
           | REST API
           v
-     FastAPI Backend
-          |
-          v
-       Database
+    FastAPI Backend
+       /       \
+      v         v
+PostgreSQL   Persistent
+ Database    Photo Storage
 ```
 
 The backend handles authentication, family members, birthdays, family events, monthly photos, image uploads, and user-specific data access.
@@ -160,17 +181,25 @@ Start the Vite development server:
 npm run dev
 ```
 
-The frontend will normally run at:
+The frontend normally runs at:
 
 ```text
 http://localhost:5173
 ```
 
-## Authentication
+## Authentication and Data Isolation
 
 Family Legacy Calendar uses JWT-based authentication.
 
-Protected backend routes require an authenticated user, and family records are associated with that user's account. This prevents one family from accessing another family's calendar information.
+Protected backend routes require an authenticated user. Family members, events, birthdays, and photo records are associated with the authenticated user's account, helping prevent one account from accessing another account's family information.
+
+## Production Infrastructure
+
+The production application uses separate frontend, backend, database, and persistent-storage components.
+
+The React frontend communicates with the FastAPI backend through a REST API. The backend stores application data in PostgreSQL, while uploaded photographs are stored on persistent storage so they remain available across deployments.
+
+Environment variables are used for production configuration and sensitive values rather than storing credentials directly in the source code.
 
 ## Purpose
 
@@ -178,19 +207,20 @@ Family Legacy Calendar was created to explore how software can help preserve fam
 
 Instead of storing birthdays, events, and photographs in separate applications, the project brings them together into a calendar that can grow with a family over time.
 
+The project also demonstrates full-stack development concepts including authentication, REST APIs, relational databases, file uploads, persistent storage, responsive frontend development, production configuration, and cloud deployment.
+
 ## Future Enhancements
 
 Potential future improvements include:
 
-- Production PostgreSQL database
-- Cloud-based image storage
-- Family invitations and shared accounts
+- Family invitations and shared family accounts
 - Family relationships and family-tree visualization
 - Anniversary and memorial reminders
 - Additional calendar customization
 - PDF/calendar export
-- Mobile optimization
-- Production deployment
+- Additional mobile optimization
+- Cloud object storage for larger-scale photo collections
+- Email or push notifications for upcoming family events
 
 ## Author
 
