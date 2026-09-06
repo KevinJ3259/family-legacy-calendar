@@ -47,7 +47,9 @@ app.add_middleware(
 )
 
 
-UPLOAD_DIR = "uploads"
+# Store uploaded photos on Render's persistent disk in production.
+# Continue using the local uploads folder during local development.
+UPLOAD_DIR = os.getenv("UPLOAD_DIR", "uploads")
 
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
