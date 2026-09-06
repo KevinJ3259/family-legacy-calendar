@@ -53,8 +53,6 @@ type AuthResponse = {
 }
 
 const API_URL = 'http://127.0.0.1:8000'
-const CALENDAR_YEAR = 2026
-
 const MONTHS = [
   'January',
   'February',
@@ -69,6 +67,11 @@ const MONTHS = [
   'November',
   'December',
 ]
+
+const YEARS = Array.from(
+  { length: 100 },
+  (_, index) => 2020 + index
+)
 
 function App() {
   const [token, setToken] = useState(
@@ -115,6 +118,7 @@ function App() {
     useState<number | null>(null)
 
   const [selectedMonth, setSelectedMonth] = useState(0)
+  const [selectedYear, setSelectedYear] = useState(2026)
 
   const [firstName, setFirstName] = useState('')
   const [middleName, setMiddleName] = useState('')
@@ -159,7 +163,7 @@ function App() {
 
     try {
       const response = await authFetch(
-        `${API_URL}/birthdays/${CALENDAR_YEAR}`
+        `${API_URL}/birthdays/${selectedYear}`
       )
 
       if (response.status === 401 || response.status === 403) {
@@ -257,7 +261,7 @@ function App() {
       loadFamilyMembers()
       loadMonthPhotos()
     }
-  }, [token])
+  }, [token, selectedYear])
 
   const saveAuthSession = (data: AuthResponse) => {
     localStorage.setItem(
@@ -563,7 +567,7 @@ function App() {
 
   const selectedMonthPhoto = monthPhotos.find(
     (photo) =>
-      photo.year === CALENDAR_YEAR &&
+      photo.year === selectedYear &&
       photo.month === selectedMonth + 1
   )
 
@@ -612,7 +616,7 @@ function App() {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            year: CALENDAR_YEAR,
+            year: selectedYear,
             month: selectedMonth + 1,
             photo_url: uploadData.photo_url,
             caption: photoCaption.trim() || null,
@@ -681,7 +685,7 @@ function App() {
 
   const getDaysInMonth = () => {
     return new Date(
-      CALENDAR_YEAR,
+      selectedYear,
       selectedMonth + 1,
       0
     ).getDate()
@@ -689,7 +693,7 @@ function App() {
 
   const getFirstDayOfMonth = () => {
     return new Date(
-      CALENDAR_YEAR,
+      selectedYear,
       selectedMonth,
       1
     ).getDay()
@@ -709,7 +713,7 @@ function App() {
         familyEvent.event_date.split('-').map(Number)
 
       return (
-        year === CALENDAR_YEAR &&
+        year === selectedYear &&
         month === selectedMonth + 1 &&
         eventDay === day
       )
@@ -1132,6 +1136,29 @@ function App() {
             </select>
           </div>
 
+          <div>
+            <label htmlFor="year-select">
+              Select Year
+            </label>
+
+            <select
+              id="year-select"
+              value={selectedYear}
+              onChange={(e) =>
+                setSelectedYear(Number(e.target.value))
+              }
+            >
+              {YEARS.map((year) => (
+                <option
+                  key={year}
+                  value={year}
+                >
+                  {year}
+                </option>
+              ))}
+            </select>
+          </div>
+
           <button
             type="button"
             className="print-button"
@@ -1224,7 +1251,7 @@ function App() {
             <p>{familyName}</p>
 
             <h2>
-              {MONTHS[selectedMonth]} {CALENDAR_YEAR}
+              {MONTHS[selectedMonth]} {selectedYear}
             </h2>
           </div>
 
