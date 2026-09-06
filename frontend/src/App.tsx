@@ -101,9 +101,10 @@ function App() {
     useState<FamilyMember[]>([])
 
   const [monthPhotos, setMonthPhotos] = useState<MonthPhoto[]>([])
-  const [photoFile, setPhotoFile] = useState<File | null>(null)
+  const [photoFiles, setPhotoFiles] = useState<File[]>([])
   const [photoCaption, setPhotoCaption] = useState('')
   const [photoUploading, setPhotoUploading] = useState(false)
+  const [showPhotoManager, setShowPhotoManager] = useState(false)
 
   const [showEventForm, setShowEventForm] = useState(false)
   const [editingEventId, setEditingEventId] =
@@ -565,21 +566,32 @@ function App() {
     }
   }
 
-  const selectedMonthPhoto = monthPhotos.find(
+  const selectedMonthPhotos = monthPhotos.filter(
     (photo) =>
       photo.year === selectedYear &&
       photo.month === selectedMonth + 1
   )
 
   const handleMonthPhotoSave = async () => {
-    if (!photoFile) {
-      alert('Please choose a photo first.')
+    if (photoFiles.length === 0) {
+      alert('Please choose at least one photo.')
       return
     }
 
-    if (selectedMonthPhoto) {
+    const remainingSlots = 6 - selectedMonthPhotos.length
+
+    if (remainingSlots <= 0) {
       alert(
-        `${MONTHS[selectedMonth]} already has a photo. Delete it first if you want to replace it.`
+        `${MONTHS[selectedMonth]} already has the maximum of 6 photos.`
+      )
+      return
+    }
+
+    if (photoFiles.length > remainingSlots) {
+      alert(
+        `You can add only ${remainingSlots} more photo${
+          remainingSlots === 1 ? '' : 's'
+        } for this month.`
       )
       return
     }
@@ -587,51 +599,53 @@ function App() {
     setPhotoUploading(true)
 
     try {
-      const formData = new FormData()
-      formData.append('file', photoFile)
+      for (const photoFile of photoFiles) {
+        const formData = new FormData()
+        formData.append('file', photoFile)
 
-      const uploadResponse = await authFetch(
-        `${API_URL}/upload-image`,
-        {
-          method: 'POST',
-          body: formData,
-        }
-      )
-
-      if (!uploadResponse.ok) {
-        const errorData = await uploadResponse.json().catch(() => null)
-        throw new Error(
-          errorData?.detail || 'Unable to upload image.'
+        const uploadResponse = await authFetch(
+          `${API_URL}/upload-image`,
+          {
+            method: 'POST',
+            body: formData,
+          }
         )
+
+        if (!uploadResponse.ok) {
+          const errorData = await uploadResponse.json().catch(() => null)
+          throw new Error(
+            errorData?.detail || 'Unable to upload image.'
+          )
+        }
+
+        const uploadData: { photo_url: string } =
+          await uploadResponse.json()
+
+        const saveResponse = await authFetch(
+          `${API_URL}/month-photos`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              year: selectedYear,
+              month: selectedMonth + 1,
+              photo_url: uploadData.photo_url,
+              caption: photoCaption.trim() || null,
+            }),
+          }
+        )
+
+        if (!saveResponse.ok) {
+          const errorData = await saveResponse.json().catch(() => null)
+          throw new Error(
+            errorData?.detail || 'Unable to save month photo.'
+          )
+        }
       }
 
-      const uploadData: { photo_url: string } =
-        await uploadResponse.json()
-
-      const saveResponse = await authFetch(
-        `${API_URL}/month-photos`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            year: selectedYear,
-            month: selectedMonth + 1,
-            photo_url: uploadData.photo_url,
-            caption: photoCaption.trim() || null,
-          }),
-        }
-      )
-
-      if (!saveResponse.ok) {
-        const errorData = await saveResponse.json().catch(() => null)
-        throw new Error(
-          errorData?.detail || 'Unable to save month photo.'
-        )
-      }
-
-      setPhotoFile(null)
+      setPhotoFiles([])
       setPhotoCaption('')
 
       const fileInput = document.getElementById(
@@ -644,29 +658,29 @@ function App() {
 
       await loadMonthPhotos()
     } catch (error) {
-      console.error('Error saving month photo:', error)
+      console.error('Error saving month photos:', error)
       alert(
         error instanceof Error
           ? error.message
-          : 'Unable to save month photo.'
+          : 'Unable to save month photos.'
       )
     } finally {
       setPhotoUploading(false)
     }
   }
 
-  const handleDeleteMonthPhoto = async () => {
-    if (!selectedMonthPhoto) return
-
+  const handleDeleteMonthPhoto = async (
+    photoId: number
+  ) => {
     const confirmed = window.confirm(
-      `Delete the photo for ${MONTHS[selectedMonth]}?`
+      `Delete this photo from ${MONTHS[selectedMonth]}?`
     )
 
     if (!confirmed) return
 
     try {
       const response = await authFetch(
-        `${API_URL}/month-photos/${selectedMonthPhoto.id}`,
+        `${API_URL}/month-photos/${photoId}`,
         {
           method: 'DELETE',
         }
@@ -1168,83 +1182,161 @@ function App() {
           </button>
         </section>
 
-        <section
-          className="member-form-card no-print"
-          style={{ marginBottom: '24px' }}
-        >
-          <h2>{MONTHS[selectedMonth]} Family Photo</h2>
+        {selectedMonthPhotos.length === 0 && (
+          <section
+            className="member-form-card no-print"
+            style={{ marginBottom: '24px' }}
+          >
+            <h2>{MONTHS[selectedMonth]} Family Photos</h2>
 
-          {selectedMonthPhoto ? (
-            <div style={{ textAlign: 'center' }}>
-              <img
-                src={selectedMonthPhoto.photo_url}
-                alt={
-                  selectedMonthPhoto.caption ||
-                  `${familyName} ${MONTHS[selectedMonth]} family photo`
+            <p>
+              Add one photo, several photos, or a pre-made collage.
+              You can save up to 6 images for each month.
+            </p>
+
+            <div className="form-grid">
+              <input
+                id="month-photo-file"
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                multiple
+                onChange={(e) =>
+                  setPhotoFiles(
+                    Array.from(e.target.files || [])
+                  )
                 }
-              style={{
-                width: 'auto',
-                maxWidth: '100%',
-                height: 'auto',
-                maxHeight: '360px',
-                objectFit: 'contain',
-                borderRadius: '12px',
-              }}  
               />
 
-              {selectedMonthPhoto.caption && (
-                <p>{selectedMonthPhoto.caption}</p>
-              )}
+              <input
+                type="text"
+                placeholder="Caption (optional)"
+                value={photoCaption}
+                onChange={(e) =>
+                  setPhotoCaption(e.target.value)
+                }
+              />
+            </div>
+
+            <div className="form-actions">
+              <button
+                type="button"
+                onClick={handleMonthPhotoSave}
+                disabled={photoUploading}
+              >
+                {photoUploading
+                  ? 'Uploading...'
+                  : `Add Photo${
+                      photoFiles.length === 1 ? '' : 's'
+                    }`}
+              </button>
+            </div>
+          </section>
+        )}
+
+        {selectedMonthPhotos.length > 0 &&
+          selectedMonthPhotos.length < 6 && (
+            <section
+              className="no-print"
+              style={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                gap: '12px',
+                flexWrap: 'wrap',
+                margin: '0 0 20px',
+              }}
+            >
+              <input
+                id="month-photo-file-more"
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                multiple
+                onChange={(e) =>
+                  setPhotoFiles(
+                    Array.from(e.target.files || [])
+                  )
+                }
+              />
 
               <button
                 type="button"
-                className="delete-button"
-                onClick={handleDeleteMonthPhoto}
+                className="add-button"
+                onClick={handleMonthPhotoSave}
+                disabled={
+                  photoUploading || photoFiles.length === 0
+                }
               >
-                Delete Photo
+                {photoUploading
+                  ? 'Uploading...'
+                  : '+ Add More Photos'}
               </button>
-            </div>
-          ) : (
-            <div>
-              <p>
-                Add a family photo or memory for{' '}
-                {MONTHS[selectedMonth]}.
-              </p>
-
-              <div className="form-grid">
-                <input
-                  id="month-photo-file"
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  onChange={(e) =>
-                    setPhotoFile(e.target.files?.[0] || null)
-                  }
-                />
-
-                <input
-                  type="text"
-                  placeholder="Caption (optional)"
-                  value={photoCaption}
-                  onChange={(e) =>
-                    setPhotoCaption(e.target.value)
-                  }
-                />
-              </div>
-
-              <div className="form-actions">
-                <button
-                  type="button"
-                  onClick={handleMonthPhotoSave}
-                  disabled={photoUploading}
-                >
-                  {photoUploading
-                    ? 'Uploading...'
-                    : `Save ${MONTHS[selectedMonth]} Photo`}
-                </button>
-              </div>
-            </div>
+            </section>
           )}
-        </section>
+
+        {selectedMonthPhotos.length > 0 && (
+          <section
+            className="no-print"
+            style={{
+              margin: '0 0 20px',
+              textAlign: 'center',
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => setShowPhotoManager((current) => !current)}
+            >
+              {showPhotoManager ? 'Hide Photo Manager' : 'Manage Photos'}
+            </button>
+
+            {showPhotoManager && (
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns:
+                    'repeat(auto-fit, minmax(140px, 1fr))',
+                  gap: '12px',
+                  maxWidth: '820px',
+                  margin: '16px auto 0',
+                }}
+              >
+                {selectedMonthPhotos.map((photo) => (
+                  <div
+                    key={photo.id}
+                    style={{
+                      border: '1px solid #ddd',
+                      borderRadius: '10px',
+                      padding: '10px',
+                      background: '#fff',
+                    }}
+                  >
+                    <img
+                      src={photo.photo_url}
+                      alt={
+                        photo.caption ||
+                        `${MONTHS[selectedMonth]} family memory`
+                      }
+                      style={{
+                        width: '100%',
+                        height: '130px',
+                        objectFit: 'contain',
+                        borderRadius: '8px',
+                        background: '#f7f4ef',
+                      }}
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteMonthPhoto(photo.id)}
+                      style={{ marginTop: '8px' }}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
 
         <section className="print-calendar">
           <div className="print-calendar-header">
@@ -1255,31 +1347,179 @@ function App() {
             </h2>
           </div>
 
-          {selectedMonthPhoto && (
-            <div
-              style={{
-                textAlign: 'center',
-                marginBottom: '20px',
-              }}
-            >
-              <img
-                src={selectedMonthPhoto.photo_url}
-                alt={
-                  selectedMonthPhoto.caption ||
-                  `${MONTHS[selectedMonth]} family memory`
-                }
-              style={{
-                width: 'auto',
-                maxWidth: '100%',
-                height: 'auto',
-                maxHeight: '360px',
-                objectFit: 'contain',
-                borderRadius: '12px',
-              }}  
-              />
+          {selectedMonthPhotos.length > 0 && (
+            <div style={{ marginBottom: '24px' }}>
+              {selectedMonthPhotos.length === 1 && (
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <img
+                    src={selectedMonthPhotos[0].photo_url}
+                    alt={
+                      selectedMonthPhotos[0].caption ||
+                      `${MONTHS[selectedMonth]} family memory`
+                    }
+                    style={{
+                      width: '100%',
+                      maxWidth: '620px',
+                      maxHeight: '380px',
+                      objectFit: 'contain',
+                      borderRadius: '12px',
+                    }}
+                  />
+                </div>
+              )}
 
-              {selectedMonthPhoto.caption && (
-                <p>{selectedMonthPhoto.caption}</p>
+              {selectedMonthPhotos.length === 2 && (
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(2, 1fr)',
+                    gap: '12px',
+                    maxWidth: '760px',
+                    margin: '0 auto',
+                  }}
+                >
+                  {selectedMonthPhotos.map((photo) => (
+                    <img
+                      key={photo.id}
+                      src={photo.photo_url}
+                      alt={
+                        photo.caption ||
+                        `${MONTHS[selectedMonth]} family memory`
+                      }
+                      style={{
+                        width: '100%',
+                        height: '280px',
+                        objectFit: 'cover',
+                        borderRadius: '12px',
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {selectedMonthPhotos.length === 3 && (
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1.35fr 1fr',
+                    gap: '12px',
+                    maxWidth: '760px',
+                    margin: '0 auto',
+                  }}
+                >
+                  <img
+                    src={selectedMonthPhotos[0].photo_url}
+                    alt={
+                      selectedMonthPhotos[0].caption ||
+                      `${MONTHS[selectedMonth]} family memory`
+                    }
+                    style={{
+                      width: '100%',
+                      height: '360px',
+                      objectFit: 'cover',
+                      borderRadius: '12px',
+                    }}
+                  />
+
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateRows: 'repeat(2, 1fr)',
+                      gap: '12px',
+                    }}
+                  >
+                    {selectedMonthPhotos.slice(1).map((photo) => (
+                      <img
+                        key={photo.id}
+                        src={photo.photo_url}
+                        alt={
+                          photo.caption ||
+                          `${MONTHS[selectedMonth]} family memory`
+                        }
+                        style={{
+                          width: '100%',
+                          height: '174px',
+                          objectFit: 'cover',
+                          borderRadius: '12px',
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {selectedMonthPhotos.length === 4 && (
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(2, 1fr)',
+                    gap: '12px',
+                    maxWidth: '760px',
+                    margin: '0 auto',
+                  }}
+                >
+                  {selectedMonthPhotos.map((photo) => (
+                    <img
+                      key={photo.id}
+                      src={photo.photo_url}
+                      alt={
+                        photo.caption ||
+                        `${MONTHS[selectedMonth]} family memory`
+                      }
+                      style={{
+                        width: '100%',
+                        height: '220px',
+                        objectFit: 'cover',
+                        borderRadius: '12px',
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {selectedMonthPhotos.length >= 5 && (
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(3, 1fr)',
+                    gap: '10px',
+                    maxWidth: '820px',
+                    margin: '0 auto',
+                  }}
+                >
+                  {selectedMonthPhotos.map((photo) => (
+                    <img
+                      key={photo.id}
+                      src={photo.photo_url}
+                      alt={
+                        photo.caption ||
+                        `${MONTHS[selectedMonth]} family memory`
+                      }
+                      style={{
+                        width: '100%',
+                        height: '180px',
+                        objectFit: 'cover',
+                        borderRadius: '10px',
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {selectedMonthPhotos[0]?.caption && (
+                <p
+                  style={{
+                    textAlign: 'center',
+                    margin: '10px 0 0',
+                  }}
+                >
+                  {selectedMonthPhotos[0].caption}
+                </p>
               )}
             </div>
           )}

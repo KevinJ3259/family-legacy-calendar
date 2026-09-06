@@ -734,3 +734,289 @@ main {
     grid-template-columns: 1fr;
   }
 }
+
+/* =========================================================
+   Portfolio Polish
+   ========================================================= */
+
+button,
+select,
+input {
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+button:hover {
+  transform: translateY(-1px);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+/* Header refinements */
+
+.header {
+  max-width: 100%;
+}
+
+.header-actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.add-button:hover,
+.print-button:hover,
+.auth-submit:hover {
+  background: #392f27;
+}
+
+/* Calendar controls */
+
+.calendar-toolbar {
+  justify-content: flex-start;
+  align-items: end;
+  flex-wrap: wrap;
+  padding: 18px 20px;
+  background: #fbf8f3;
+  border: 1px solid #e6ddd2;
+  border-radius: 12px;
+}
+
+.calendar-toolbar > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.calendar-toolbar select {
+  min-width: 155px;
+  cursor: pointer;
+}
+
+.calendar-toolbar select:focus {
+  border-color: #76563d;
+  box-shadow: 0 0 0 3px rgba(118, 86, 61, 0.1);
+  outline: none;
+}
+
+.calendar-toolbar .print-button {
+  margin-left: auto;
+}
+
+/* Calendar card */
+
+.print-calendar {
+  box-shadow: 0 8px 26px rgba(73, 59, 47, 0.06);
+}
+
+.calendar-day {
+  position: relative;
+  background: #ffffff;
+}
+
+.calendar-day:hover {
+  background: #fffdf9;
+}
+
+.calendar-birthday,
+.calendar-event {
+  word-break: break-word;
+}
+
+/* Photo section */
+
+.member-form-card img {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.member-form-card > p,
+.member-form-card div > p {
+  line-height: 1.6;
+}
+
+/* Forms */
+
+.form-grid input:hover,
+.auth-form input:hover {
+  border-color: #bda995;
+}
+
+.form-grid input:focus,
+.auth-form input:focus {
+  border-color: #76563d;
+  box-shadow: 0 0 0 3px rgba(118, 86, 61, 0.1);
+  outline: none;
+}
+
+/* Family member + event cards */
+
+.family-members-section {
+  scroll-margin-top: 20px;
+}
+
+.family-members-grid {
+  align-items: stretch;
+}
+
+.family-member-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 170px;
+  box-shadow: 0 4px 14px rgba(73, 59, 47, 0.04);
+}
+
+.family-member-card:hover {
+  border-color: #d5c6b6;
+  box-shadow: 0 8px 22px rgba(73, 59, 47, 0.08);
+}
+
+.family-member-card p {
+  margin: 7px 0;
+  line-height: 1.45;
+  color: #5f5852;
+}
+
+.family-member-card h3 {
+  margin-bottom: 14px;
+  line-height: 1.3;
+}
+
+.card-actions {
+  margin-top: auto;
+  padding-top: 12px;
+}
+
+.edit-button:hover {
+  background: #f7efe7;
+}
+
+.delete-button:hover {
+  background: #fff1f1;
+}
+
+/* Birthday cards */
+
+.birthday-card {
+  box-shadow: 0 4px 14px rgba(73, 59, 47, 0.04);
+}
+
+.birthday-card:hover {
+  border-color: #d5c6b6;
+  box-shadow: 0 8px 22px rgba(73, 59, 47, 0.08);
+}
+
+/* Authentication */
+
+.auth-card {
+  text-align: left;
+}
+
+.auth-submit:hover {
+  box-shadow: 0 6px 16px rgba(73, 59, 47, 0.16);
+}
+
+/* Tablet */
+
+@media (max-width: 900px) {
+  .calendar-toolbar {
+    align-items: stretch;
+  }
+
+  .calendar-toolbar .print-button {
+    margin-left: 0;
+  }
+}
+
+/* Mobile */
+
+@media (max-width: 700px) {
+  .calendar-toolbar {
+    padding: 16px;
+  }
+
+  .calendar-toolbar > div {
+    width: 100%;
+  }
+
+  .calendar-toolbar select {
+    min-width: 0;
+  }
+
+  .print-calendar {
+    padding: 20px 16px;
+  }
+
+  .print-calendar-header h2 {
+    font-size: 28px;
+  }
+
+  .family-members-section,
+  .birthday-section {
+    margin-top: 32px;
+  }
+
+  .family-member-card {
+    min-height: 0;
+  }
+}
+
+/* Small phones */
+
+@media (max-width: 480px) {
+  .calendar-toolbar {
+    margin-top: 24px;
+  }
+
+  .print-calendar {
+    padding: 16px 12px;
+  }
+
+  .member-form-card {
+    border-radius: 12px;
+  }
+
+  .family-member-card,
+  .birthday-card {
+    border-radius: 10px;
+  }
+}
+
+/* Print refinements */
+
+@media print {
+  .print-calendar {
+    box-shadow: none;
+  }
+
+  .print-calendar-header {
+    margin-bottom: 16px;
+  }
+
+  .print-calendar-header h2 {
+    font-size: 28px;
+  }
+
+  .calendar-day {
+    min-height: 105px;
+    break-inside: avoid;
+  }
+
+  .calendar-birthday,
+  .calendar-event {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .calendar-weekdays div,
+  .calendar-day {
+    font-size: 11px;
+  }
+}

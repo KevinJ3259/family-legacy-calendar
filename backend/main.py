@@ -558,20 +558,22 @@ def create_month_photo(
     family: models.Family = Depends(get_current_family),
     db: Session = Depends(get_db),
 ):
-    existing_photo = (
+    # Allow up to 6 photos for each family/month/year.
+    # A pre-made collage counts as one uploaded image.
+    photo_count = (
         db.query(models.MonthPhoto)
         .filter(
             models.MonthPhoto.family_id == family.id,
             models.MonthPhoto.year == photo.year,
             models.MonthPhoto.month == photo.month,
         )
-        .first()
+        .count()
     )
 
-    if existing_photo:
+    if photo_count >= 6:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="A photo already exists for this month.",
+            detail="You can add up to 6 photos for this month.",
         )
 
     db_photo = models.MonthPhoto(
