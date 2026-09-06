@@ -12,6 +12,17 @@ import models
 import schemas
 from database import SessionLocal, engine
 
+FRONTEND_URL = os.getenv(
+    "FRONTEND_URL",
+    "http://localhost:5173",
+)
+
+BACKEND_URL = os.getenv(
+    "BACKEND_URL",
+    "http://127.0.0.1:8000",
+).rstrip("/")
+
+
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -26,6 +37,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
+        FRONTEND_URL,
         "http://localhost:5173",
         "http://localhost:5174",
     ],
@@ -714,7 +726,6 @@ async def upload_image(
 
     return {
         "photo_url": (
-            f"http://127.0.0.1:8000/uploads/{unique_filename}"
+            f"{BACKEND_URL}/uploads/{unique_filename}"
         )
     }
-

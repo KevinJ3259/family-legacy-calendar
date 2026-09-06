@@ -1,12 +1,26 @@
+import os
 from datetime import datetime, timedelta, timezone
 
 from jose import JWTError, jwt
 from pwdlib import PasswordHash
 
 
-SECRET_KEY = "change-this-before-production"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24
+SECRET_KEY = os.getenv(
+    "SECRET_KEY",
+    "dev-only-change-this-secret",
+)
+
+ALGORITHM = os.getenv(
+    "JWT_ALGORITHM",
+    "HS256",
+)
+
+ACCESS_TOKEN_EXPIRE_MINUTES = int(
+    os.getenv(
+        "ACCESS_TOKEN_EXPIRE_MINUTES",
+        str(60 * 24),
+    )
+)
 
 password_hash = PasswordHash.recommended()
 
@@ -55,8 +69,6 @@ def decode_access_token(token: str) -> dict | None:
             SECRET_KEY,
             algorithms=[ALGORITHM],
         )
-
         return payload
-
     except JWTError:
         return None
