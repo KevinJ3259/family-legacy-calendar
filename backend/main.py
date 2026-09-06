@@ -40,6 +40,7 @@ app.add_middleware(
         FRONTEND_URL,
         "http://localhost:5173",
         "http://localhost:5174",
+        "https://family-legacy-calendar-frontend.onrender.com",
     ],
     allow_credentials=True,
     allow_methods=["*"],
